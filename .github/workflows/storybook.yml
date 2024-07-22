@@ -32,6 +32,7 @@ jobs:
         working-directory: ./frontend
         #👇 Adds Chromatic as a step in the workflow
       - uses: chromaui/action@v1
+        working-directory: ./frontend
         # Options required for Chromatic's GitHub Action
         with:
           #👇 Chromatic projectToken, see https://storybook.js.org/tutorials/intro-to-storybook/react/ko/deploy/ to obtain it
