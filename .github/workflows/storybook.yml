@@ -1,46 +1,50 @@
-name: 'Chromatic Deployment'
+# Workflow name
+name: "Chromatic Deployment"
 
 on:
-  push:
-    branches: ['dev-fe']
+  pull_request:
+    branches:
+      - dev-fe
+      - feat/**
     paths:
-      - 'frontend/**'
+      - frontend/**
+      - .github/**
+  push:
+    branches:
+      - dev-fe
+      - feat/**
+    paths:
+      - frontend/**
+      - .github/**
 
+# List of jobs
 jobs:
-  chromatic-deployment:
+  test:
+    # Operating System
+    runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
-    runs-on: ubuntu-latest
+        working-directory: ./frontend
 
+    # Job steps
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - name: Set node linker to node-modules
-        run: yarn config set nodeLinker "node-modules"
-
-      - name: Install dependencies
-        run: yarn install --immutable --check-cache
-
-      - name: Build Storybook
-        run: yarn run build-storybook
-
-      - name: Publish to Chromatic
-        id: publish_chromatic
-        uses: chromaui/action@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - run: yarn
+      - name: Run Chromatic
+        uses: chromaui/action@v2
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          buildScriptName: build-storybook
-          onlyChanged: true
-          storybookBaseDir: frontend
-
-      - name: Comment on PR
-        uses: thollander/actions-comment-pull-request@v1
-        if: ${{ github.event_name == 'pull_request' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          message: '🚀 **storybook**: ${{ steps.publish_chromatic.outputs.storybookUrl }}'
+          token: ${{ secrets.GITHUB_TOKEN }}
