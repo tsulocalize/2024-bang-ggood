@@ -1,4 +1,3 @@
-# Workflow name
 name: "Chromatic Deployment"
 
 on:
@@ -25,14 +24,14 @@ jobs:
     defaults:
       run:
         working-directory: ./frontend
+
     # Job steps
     steps:
       - uses: actions/checkout@v1
       - run: yarn
-        working-directory: ./frontend
-        #👇 Adds Chromatic as a step in the workflow
+
+      #👇 Adds Chromatic as a step in the workflow
       - uses: chromaui/action@v1
-        working-directory: ./frontend
         # Options required for Chromatic's GitHub Action
         with:
           #👇 Chromatic projectToken, see https://storybook.js.org/tutorials/intro-to-storybook/react/ko/deploy/ to obtain it
