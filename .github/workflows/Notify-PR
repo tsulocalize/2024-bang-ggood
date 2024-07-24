@@ -1,0 +1,32 @@
+name: Notify PR Review Request
+
+on:
+  pull_request:
+    branches: [ "dev-be" ]
+    types: [review_requested]
+    paths: 'backend/**'
+jobs:
+  notify:
+    - name: Make Review Request Message
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+            let blocks = [
+              {"type": "header", "text": {"type": "plain_text", "text": "👀 PR 리뷰 요청"}},
+              {"type": "divider"}
+            ];
+            blocks.push({
+              "type": "section",
+              "text": { "type": "mrkdwn", "text": ${{ github.event.pull_request.number }} + ${{ github.event.pull_request.title }} + "\n" + ${{ github.event.pull_request.url }} +
+                                                  Reviewers: ${{ github.event.pull_request.requested_reviewers }}.map(el=>el.name).join(',')   }
+            return JSON.stringify({ blocks });
+
+    - name: Send Slack message
+      uses: 8398a7/action-slack@v3
+      with:
+        status: custom
+        custom_payload: |
+                      ${{ fromJSON(steps.pulls.outputs.result) }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
