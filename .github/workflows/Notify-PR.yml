@@ -20,7 +20,7 @@ jobs:
               blocks.push({
                 "type": "section",
                 "text": { "type": "mrkdwn", "text": ${{ github.event.pull_request.number }} + ${{ github.event.pull_request.title }} + "\n" + ${{ github.event.pull_request.url }} +
-                                                    Reviewers: ${{ github.event.pull_request.requested_reviewers }}.map(el=>el.name).join(',')   }
+                                                    "Reviewers:" + ${{ github.event.pull_request.requested_reviewers }}.map(el=>el.name).join(',')   }
               return JSON.stringify({ blocks });
     
       - name: Send Slack message
