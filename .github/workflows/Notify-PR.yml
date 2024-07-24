@@ -10,7 +10,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Notify on PR approval
+      - name: Notify on PR
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
