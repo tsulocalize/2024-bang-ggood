@@ -1,42 +1,24 @@
-name: Notify PR Review Request
+name: Slack Notification
 
 on:
-  pull_request:
-    branches: [ dev-be ]
-    paths:
-      - 'backend/**'
+  pull_request_review:
+    types:
+      - submitted
 
 jobs:
-  BE_SLACK:
+  slack_notification:
     runs-on: ubuntu-latest
     steps:
-      - name: Make Review Request Message
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const title = `${{ github.event.pull_request.number }} ${github.event.pull_request.title}`;
-            const url = `${{ github.event.pull_request.html_url }}`;
-            const reviewers = `${{ github.event.pull_request.requested_reviewers.map(el => el.name).join(', ') }}`;
+      - name: Check out code
+        uses: actions/checkout@v2
 
-            const blocks = [
-              { type: 'header', text: { type: 'plain_text', text: '👀 PR 리뷰 요청' } },
-              { type: 'divider' },
-              {
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: `${title}\n${url}\nReviewers: ${reviewers}`
-                }
-              }
-            ];
-
-            return { blocks: blocks };
-
-      - name: Send Slack message
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: ${{ toJson(steps.Make Review Request Message.outputs.result.blocks) }}
+      - name: Notify on PR approval
+        if: github.event.review.state == 'approved'
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{
+            "text": "Pull Request Approved: <!channel> PR: '${{ github.event.pull_request.title }}' by ${{
+            github.event.pull_request.user.login }}\n${{ github.event.pull_request.html_url }}",
+            "username": "GitHub Actions"
+          }' $SLACK_WEBHOOK
